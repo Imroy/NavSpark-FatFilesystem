@@ -90,7 +90,8 @@ void setup() {
   strcat(fileName, "/bin_file.bin");
   {
     FAT::File bin_file(fileName, FA_READ);
-    DWORD fileSize = bin_file.get_size();
+    FAT::FileInfo bin_info(fileName);
+    DWORD fileSize = bin_info.size();
     len = sprintf(buf, "open %s, size : %ld\r\n", fileName, fileSize);
     UartOutput(withGNSSLib, buf, len);
     //Read first 8 bytes and dump them to uart.

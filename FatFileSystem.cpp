@@ -28,13 +28,7 @@ namespace FAT {
 
   File::File(const XCHAR *path, BYTE mode) {
     memset(&_sdFile, 0, sizeof(_sdFile));
-    memset(&_fileInfo, 0, sizeof(_fileInfo));
-
-    strcpy(_file_name, path);
-    FRESULT res = f_open(&_sdFile, _file_name, mode);
-    if (res==FR_OK) {
-      f_stat(path, &_fileInfo);
-    }
+    f_open(&_sdFile, path, mode);
   }
 
   File::~File() {
@@ -61,6 +55,11 @@ namespace FAT {
 
   FRESULT File::read(void* buf_p, UINT len, UINT* len_p) {
     return f_read(&_sdFile, buf_p, len, len_p);
+  }
+
+  FileInfo::FileInfo(const XCHAR* path) {
+    memset(&_fileInfo, 0, sizeof(_fileInfo));
+    f_stat(path, &_fileInfo);
   }
 
 }; // namespace FAT
