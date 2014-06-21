@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string.h>
 #include "diskio.h" 
 #include "ff.h" 
 
@@ -39,6 +40,7 @@ namespace FAT {
 
     void lseek(DWORD ofs);
     UINT write(const BYTE* buf_p, UINT len);
+    UINT write(const char* buf_p) { return write((BYTE*)buf_p, strlen(buf_p)); }
     void read (void* buf_p, UINT len, UINT* len_p);
   }; // class File
 
