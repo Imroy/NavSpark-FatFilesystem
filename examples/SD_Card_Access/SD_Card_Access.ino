@@ -46,59 +46,63 @@ void setup() {
   //create a text file and write some lines of message.
   strcpy(fileName, folderName);
   strcat(fileName, "/text_file.txt");
-  fatFsAgent.open_file(fileName, FA_WRITE | FA_CREATE_NEW);
-  for(int i=0; i<20; ++i)
   {
-    sprintf(buf, "NavSpark adapter board text file example line %d\r\n", i + 1);
-    len = fatFsAgent.write_file((BYTE*)buf, strlen(buf));
+    FAT::File text_file(fileName, FA_WRITE | FA_CREATE_NEW);
+    for (int i = 0; i < 20; ++i) {
+      sprintf(buf, "NavSpark adapter board text file example line %d\r\n", i + 1);
+      len = text_file.write((BYTE*)buf, strlen(buf));
+    }
+    text_file.close();
   }
-  fatFsAgent.close_file();
   
   //create a binary file and write sequential values.
   strcpy(fileName, folderName);
   strcat(fileName, "/bin_file.bin");
-  fatFsAgent.open_file(fileName, FA_WRITE | FA_CREATE_NEW);
-  for(int i=0; i<Size; ++i)
   {
-    buf[i % Size] = (BYTE)i; 
+    FAT::File bin_file(fileName, FA_WRITE | FA_CREATE_NEW);
+    for (int i = 0; i < Size; ++i) {
+      buf[i % Size] = (BYTE)i;
+    }
+    len = Size;
+    len = bin_file.write((BYTE*)buf, len);
+    bin_file.close();
+    len = Size;
   }
-  len = Size;
-  len = fatFsAgent.write_file((BYTE*)buf, len);
-  fatFsAgent.close_file();
-  len = Size;
 
   //read a text file to Serial
   strcpy(fileName, folderName);
   strcat(fileName, "/text_file.txt");
-  fatFsAgent.open_file(fileName, FA_READ);
-
-  UINT  readSize = 64;
-  len = readSize;
-  do
   {
-    fatFsAgent.file_read(buf, len, &len);
-    buf[len] = 0;  //Add string null terminator
-    UartOutput(withGNSSLib, buf, len);
-  } while(len == readSize);
-  fatFsAgent.close_file();
+    FAT::File text_file(fileName, FA_READ);
+
+    UINT  readSize = 64;
+    len = readSize;
+    do {
+      text_file.read(buf, len, &len);
+      buf[len] = 0;  //Add string null terminator
+      UartOutput(withGNSSLib, buf, len);
+    } while(len == readSize);
+    text_file.close();
+  }
   
   //read a binary file to Serial
   strcpy(fileName, folderName);
   strcat(fileName, "/bin_file.bin");
-  fatFsAgent.open_file(fileName, FA_READ);
-  DWORD fileSize = fatFsAgent.get_file_size();
-  len = sprintf(buf, "open %s, size : %ld\r\n", fileName, fileSize);
-  UartOutput(withGNSSLib, buf, len);
-  //Read first 8 bytes and dump them to uart.
-  readSize = 8;
-  len = readSize;
-  fatFsAgent.file_read(buf, len, &len);
-  fatFsAgent.close_file();
+  {
+    FAT::File bin_file(fileName, FA_READ);
+    DWORD fileSize = bin_file.get_size();
+    len = sprintf(buf, "open %s, size : %ld\r\n", fileName, fileSize);
+    UartOutput(withGNSSLib, buf, len);
+    //Read first 8 bytes and dump them to uart.
+    UINT readSize = 8;
+    len = readSize;
+    bin_file.read(buf, len, &len);
+    bin_file.close();
+  }
   
   len = sprintf(fileName, "Data : %02X %02X %02X %02X %02X %02X %02X %02X \r\n", 
       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
   UartOutput(withGNSSLib, fileName, len);
-
 }
 
 void UartOutput(BOOL withGNSSLib, char* buf, int len)
