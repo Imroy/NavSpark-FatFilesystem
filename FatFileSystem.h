@@ -39,6 +39,7 @@ namespace FAT {
     void close(void);
 
     void lseek(DWORD ofs);
+    DWORD tell(void) { return _sdFile.fptr; }
     UINT write(const BYTE* buf_p, UINT len);
     UINT write(const char* buf_p) { return write((BYTE*)buf_p, strlen(buf_p)); }
     void read (void* buf_p, UINT len, UINT* len_p);
