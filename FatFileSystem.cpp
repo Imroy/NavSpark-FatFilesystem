@@ -59,9 +59,28 @@ namespace FAT {
     _result = f_read(&_sdFile, buf_p, len, len_p);
   }
 
+  FileInfo::FileInfo() {
+    memset(&_fileInfo, 0, sizeof(_fileInfo));
+  }
+
   FileInfo::FileInfo(const XCHAR* path) {
     memset(&_fileInfo, 0, sizeof(_fileInfo));
     _result = f_stat(path, &_fileInfo);
   }
+
+  Directory::Directory(const XCHAR *path) {
+    memset(&_Dir, 0, sizeof(_Dir));
+    _result = f_opendir(&_Dir, path);
+  }
+
+  FileInfo* Directory::next_entry(void) {
+    FileInfo *fi = new FileInfo;
+    _result = f_readdir(&_Dir, &(fi->_fileInfo));
+    if (_result == FR_OK)
+      return fi;
+
+    return NULL;
+  }
+
 
 }; // namespace FAT

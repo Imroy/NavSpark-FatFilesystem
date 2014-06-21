@@ -41,9 +41,13 @@ namespace FAT {
     void read (void* buf_p, UINT len, UINT* len_p);
   }; // class File
 
+  class Directory;
   class FileInfo : public with_result {
   protected:
     FILINFO _fileInfo;
+
+    friend class Directory;
+    FileInfo();
 
   public:
     FileInfo(const XCHAR* path);
@@ -58,5 +62,16 @@ namespace FAT {
     const int long_name_size(void) const { return _fileInfo.lfsize; }
 #endif
   };
+
+  class Directory : public with_result {
+  protected:
+    DIR _Dir;
+
+  public:
+    Directory(const XCHAR *path);
+
+    FileInfo* next_entry(void);
+
+  }; // class Directory
 
 }; // namespace FAT
