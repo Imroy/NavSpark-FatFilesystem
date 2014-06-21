@@ -4,71 +4,59 @@
 #include <string.h>
 #include "Arduino.h" 
 
-FatFileSystem::FatFileSystem()
+FatFileSystem::FatFileSystem() :
+  _mmcInit(false)
 {
-  mmcInit = false;  
-  memset(&sdFile, 0, sizeof(sdFile));
-  memset(&fileInfo, 0, sizeof(fileInfo));
-  
+  memset(&_sdFile, 0, sizeof(_sdFile));
+  memset(&_fileInfo, 0, sizeof(_fileInfo));
 }
 
-FatFileSystem::~FatFileSystem()
-{
-  
+FatFileSystem::~FatFileSystem() {
 }
  
-FRESULT FatFileSystem::initialize()
-{
-  if (mmcInit)
+FRESULT FatFileSystem::initialize() {
+  if (_mmcInit)
     return FR_OK;
 
-  FRESULT res = f_mount(0, &fatFs);
+  FRESULT res = f_mount(0, &_fatFs);
   close_file();
   return res;
 }
 
-void FatFileSystem::close_file()
-{
-  if(!sdFile.fs)
-  {
+void FatFileSystem::close_file() {
+  if (!_sdFile.fs)
     return;
-  }  
-  f_close(&sdFile);
-  memset(&sdFile, 0, sizeof(sdFile));
+
+  f_close(&_sdFile);
+  memset(&_sdFile, 0, sizeof(_sdFile));
 }
 
-FRESULT FatFileSystem::make_dir(const XCHAR *path)
-{
+FRESULT FatFileSystem::make_dir(const XCHAR *path) {
   FRESULT res = f_mkdir(path);
   return res; 
 }
 
-FRESULT FatFileSystem::open_file(const XCHAR *path, BYTE mode)
-{
-  if(sdFile.fs)
-  {
-    f_close(&sdFile);
-    memset(&sdFile, 0, sizeof(sdFile));
+FRESULT FatFileSystem::open_file(const XCHAR *path, BYTE mode) {
+  if (_sdFile.fs) {
+    f_close(&_sdFile);
+    memset(&_sdFile, 0, sizeof(_sdFile));
   }
   
-  strcpy(file_name, path);
-  FRESULT res = f_open(&sdFile, file_name, mode);
-  if(res==FR_OK)
-  {
-    f_stat(path, &fileInfo);
+  strcpy(_file_name, path);
+  FRESULT res = f_open(&_sdFile, _file_name, mode);
+  if (res==FR_OK) {
+    f_stat(path, &_fileInfo);
   }
 
   return res; 
 }
 
-UINT FatFileSystem::write_file(const BYTE* buf_p, UINT len)
-{
-  FRESULT res = f_write(&sdFile, buf_p, len, &len);
-  res = f_sync(&sdFile);
+UINT FatFileSystem::write_file(const BYTE* buf_p, UINT len) {
+  FRESULT res = f_write(&_sdFile, buf_p, len, &len);
+  res = f_sync(&_sdFile);
   return len;
 }
 
-FRESULT FatFileSystem::file_read (void* buf_p, UINT len, UINT* len_p)
-{
-  return f_read(&sdFile, buf_p, len, len_p);
+FRESULT FatFileSystem::file_read(void* buf_p, UINT len, UINT* len_p) {
+  return f_read(&_sdFile, buf_p, len, len_p);
 }
