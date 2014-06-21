@@ -25,7 +25,7 @@ namespace FAT {
     virtual ~FileSystem();
 
     void initialize();
-    void make_dir(const XCHAR *path);
+    void make_dir(const TCHAR *path);
   }; // class FileSystem
 
   class File : public with_result {
@@ -33,12 +33,13 @@ namespace FAT {
     FIL _sdFile;
 
   public:
-    File(const XCHAR *path, BYTE mode);
+    File(const TCHAR *path, BYTE mode);
     ~File();
 
     void close(void);
 
     void lseek(DWORD ofs);
+    DWORD tell(void);
     UINT write(const BYTE* buf_p, UINT len);
     UINT write(const char* buf_p) { return write((BYTE*)buf_p, strlen(buf_p)); }
     void read (void* buf_p, UINT len, UINT* len_p);
@@ -53,7 +54,7 @@ namespace FAT {
     FileInfo();
 
   public:
-    FileInfo(const XCHAR* path);
+    FileInfo(const TCHAR* path);
 
     const DWORD size(void) const { return _fileInfo.fsize; }
     const WORD date(void) const { return _fileInfo.fdate; }
@@ -61,7 +62,7 @@ namespace FAT {
     const BYTE attrib(void) const { return _fileInfo.fattrib; }
     const char* name(void) const { return _fileInfo.fname; }
 #if _USE_LFN
-    const XCHAR* long_name(void) const { return _fileInfo.lfname; }
+    const TCHAR* long_name(void) const { return _fileInfo.lfname; }
     const int long_name_size(void) const { return _fileInfo.lfsize; }
 #endif
   };
@@ -71,7 +72,7 @@ namespace FAT {
     DIR _Dir;
 
   public:
-    Directory(const XCHAR *path);
+    Directory(const TCHAR *path);
 
     FileInfo* next_entry(void);
 

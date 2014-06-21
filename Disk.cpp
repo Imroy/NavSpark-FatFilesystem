@@ -25,6 +25,13 @@
 #define CMD58 (0x40+58)     // READ_OCR, Read OCR.
 //#define ACMD41  (0x40+41)   // SEND_OP_COND (SDC), For only SDC. Initiate initialization process.
 
+/* Card type flags (CardType) */
+#define CT_MMC				0x01	/* MMC ver 3 */
+#define CT_SD1				0x02	/* SD ver 1 */
+#define CT_SD2				0x04	/* SD ver 2 */
+#define CT_SDC				(CT_SD1|CT_SD2)	/* SD */
+#define CT_BLOCK			0x08	/* Block addressing */
+
 #define FCLK_SLOW()         /* Set slow clock (100k-400k) */
 #define FCLK_FAST()         /* Set fast clock (depends on the CSD) */
 
@@ -361,7 +368,7 @@ DRESULT disk_read (
   BYTE drv,     /* Physical drive nmuber (0) */
   BYTE *buff,     /* Pointer to the data buffer to store read data */
   DWORD sector,   /* Start sector number (LBA) */
-  BYTE count      /* Sector count (1..255) */
+  UINT count      /* Sector count (1..255) */
 )
 {
   if (drv || !count) return RES_PARERR;
@@ -426,7 +433,7 @@ DRESULT disk_write (
   BYTE drv,     /* Physical drive nmuber (0) */
   const BYTE *buff, /* Pointer to the data to be written */
   DWORD sector,   /* Start sector number (LBA) */
-  BYTE count      /* Sector count (1..255) */
+  UINT count      /* Sector count (1..255) */
 )
 {
   if (drv || !count) return RES_PARERR;
@@ -665,7 +672,11 @@ WCHAR ff_wtoupper ( // Upper converted character
   return tbl_lower[i] ? tbl_upper[i] : chr;
 }
 
-DWORD get_fattime () {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+DWORD get_fattime (void) {
   if (GnssInfo.fixMode() != 0)
     return ((DWORD)(GnssInfo.date.year() - 1980) << 25)
       | ((DWORD)GnssInfo.date.month() << 21)
@@ -676,3 +687,7 @@ DWORD get_fattime () {
 
   return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
