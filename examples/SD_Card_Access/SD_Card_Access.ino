@@ -38,8 +38,8 @@ void setup() {
   for(int i=0; i<100; ++i)
   {  
     sprintf(folderName, "TestFolder%03d", i + 1);
-    FRESULT res = fatFsAgent.make_dir(folderName);
-    if(FR_OK==res)
+    fatFsAgent.make_dir(folderName);
+    if (FR_OK == fatFsAgent.result())
       break;
   }
   

@@ -13,53 +13,55 @@ namespace FAT {
   FileSystem::~FileSystem() {
   }
 
-  FRESULT FileSystem::initialize() {
+  void FileSystem::initialize() {
     if (_mmcInit)
-      return FR_OK;
+      return;
 
-    FRESULT res = f_mount(0, &_fatFs);
-    return res;
+    _result = f_mount(0, &_fatFs);
   }
 
-  FRESULT FileSystem::make_dir(const XCHAR *path) {
-    FRESULT res = f_mkdir(path);
-    return res; 
+  void FileSystem::make_dir(const XCHAR *path) {
+    _result = f_mkdir(path);
   }
 
   File::File(const XCHAR *path, BYTE mode) {
     memset(&_sdFile, 0, sizeof(_sdFile));
-    f_open(&_sdFile, path, mode);
+    _result = f_open(&_sdFile, path, mode);
   }
 
   File::~File() {
+    _result = FR_OK;
     if (_sdFile.fs) {
-      f_close(&_sdFile);
+      _result = f_close(&_sdFile);
       memset(&_sdFile, 0, sizeof(_sdFile));
     }
   }
 
-  FRESULT File::close(void) {
-    FRESULT res = FR_OK;
+  void File::close(void) {
+    _result = FR_OK;
     if (_sdFile.fs) {
-      res = f_close(&_sdFile);
+      _result = f_close(&_sdFile);
       memset(&_sdFile, 0, sizeof(_sdFile));
     }
-    return res;
   }
 
   UINT File::write(const BYTE* buf_p, UINT len) {
-    FRESULT res = f_write(&_sdFile, buf_p, len, &len);
-    res = f_sync(&_sdFile);
+    _result = f_write(&_sdFile, buf_p, len, &len);
+    if (_result != FR_OK)
+      return len;
+
+    _result = f_sync(&_sdFile);
+
     return len;
   }
 
-  FRESULT File::read(void* buf_p, UINT len, UINT* len_p) {
-    return f_read(&_sdFile, buf_p, len, len_p);
+  void File::read(void* buf_p, UINT len, UINT* len_p) {
+    _result = f_read(&_sdFile, buf_p, len, len_p);
   }
 
   FileInfo::FileInfo(const XCHAR* path) {
     memset(&_fileInfo, 0, sizeof(_fileInfo));
-    f_stat(path, &_fileInfo);
+    _result = f_stat(path, &_fileInfo);
   }
 
 }; // namespace FAT

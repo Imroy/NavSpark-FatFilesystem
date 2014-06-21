@@ -5,7 +5,16 @@
 
 namespace FAT {
 
-  class FileSystem {
+  class with_result {
+  protected:
+    FRESULT _result;
+
+  public:
+    const FRESULT result(void) const { return _result; }
+
+  }; // class with_results
+
+  class FileSystem : public with_result {
   protected:
     bool _mmcInit;
     FATFS _fatFs;
@@ -14,11 +23,11 @@ namespace FAT {
     FileSystem();
     virtual ~FileSystem();
 
-    FRESULT initialize();
-    FRESULT make_dir(const XCHAR *path);
+    void initialize();
+    void make_dir(const XCHAR *path);
   }; // class FileSystem
 
-  class File {
+  class File : public with_result {
   protected:
     FIL _sdFile;
 
@@ -26,13 +35,13 @@ namespace FAT {
     File(const XCHAR *path, BYTE mode);
     ~File();
 
-    FRESULT close(void);
+    void close(void);
 
     UINT write(const BYTE* buf_p, UINT len);
-    FRESULT read (void*, UINT, UINT*);
+    void read (void* buf_p, UINT len, UINT* len_p);
   }; // class File
 
-  class FileInfo {
+  class FileInfo : public with_result {
   protected:
     FILINFO _fileInfo;
 
