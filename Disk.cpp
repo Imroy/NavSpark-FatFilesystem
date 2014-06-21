@@ -611,6 +611,10 @@ DRESULT disk_ioctl (
 }
 #endif /* _USE_IOCTL != 0 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // --------------------
 static
 const WCHAR Tbl[] = { /*  CP437(0x80-0xFF) to Unicode conversion table */
@@ -671,10 +675,6 @@ WCHAR ff_wtoupper ( // Upper converted character
 
   return tbl_lower[i] ? tbl_upper[i] : chr;
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 DWORD get_fattime (void) {
   if (GnssInfo.fixMode() != 0)
