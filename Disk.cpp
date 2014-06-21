@@ -1,5 +1,6 @@
 #include "diskio.h"
 #include "SPI.h"
+#include <GNSS.h>
 
 #if(SHOW_DEBUG)
 #include "HardwareSerial.h"
@@ -664,33 +665,14 @@ WCHAR ff_wtoupper ( // Upper converted character
   return tbl_lower[i] ? tbl_upper[i] : chr;
 }
 
-DWORD get_fattime ()
-{
-  //RTC rtc;
+DWORD get_fattime () {
+  if (GnssInfo.fixMode() != 0)
+    return ((DWORD)(GnssInfo.date.year() - 1980) << 25)
+      | ((DWORD)GnssInfo.date.month() << 21)
+      | ((DWORD)GnssInfo.date.day() << 16)
+      | ((DWORD)GnssInfo.time.hour() << 11)
+      | ((DWORD)GnssInfo.time.minute() << 5)
+      | ((DWORD)GnssInfo.time.second() >> 1);
 
-
-  ///* Get local time */
-  //rtc_gettime(&rtc);
-
-  ///* Pack date and time into a DWORD variable */
-  //return    ((DWORD)(rtc.year - 1980) << 25)
-  //    | ((DWORD)rtc.month << 21)
-  //    | ((DWORD)rtc.mday << 16)
-  //    | ((DWORD)rtc.hour << 11)
-  //    | ((DWORD)rtc.min << 5)
-  //    | ((DWORD)rtc.sec >> 1);
- /* 
-  UTC_TIME_T utc;
-  
-  getRTCTime(&utc);
-  
-  // Pack date and time into a DWORD variable 
-  return    ((DWORD)(utc.year - 1980) << 25)
-      | ((DWORD)utc.month << 21)
-      | ((DWORD)utc.day << 16)
-      | ((DWORD)utc.hour << 11)
-      | ((DWORD)utc.minute << 5)
-      | ((DWORD)utc.sec >> 1);
-  */
   return 0;
 }
