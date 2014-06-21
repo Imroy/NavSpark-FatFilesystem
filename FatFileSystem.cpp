@@ -45,6 +45,10 @@ namespace FAT {
     }
   }
 
+  void File::lseek(DWORD ofs) {
+    _result = f_lseek(&_sdFile, ofs);
+  }
+
   UINT File::write(const BYTE* buf_p, UINT len) {
     _result = f_write(&_sdFile, buf_p, len, &len);
     if (_result != FR_OK)

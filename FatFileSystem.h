@@ -37,6 +37,7 @@ namespace FAT {
 
     void close(void);
 
+    void lseek(DWORD ofs);
     UINT write(const BYTE* buf_p, UINT len);
     void read (void* buf_p, UINT len, UINT* len_p);
   }; // class File
