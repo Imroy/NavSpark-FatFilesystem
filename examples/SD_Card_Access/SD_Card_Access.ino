@@ -31,7 +31,7 @@ void setup() {
   spiMaster.begin(); 
   spiMaster.slaveSelect(0); // use GPIO28 
   
-  FatFileSystem fatFsAgent;
+  FAT::FileSystem fatFsAgent;
   fatFsAgent.initialize();
   
   //create a folder
