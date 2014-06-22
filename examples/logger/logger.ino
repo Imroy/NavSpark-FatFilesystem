@@ -72,62 +72,64 @@ void loop() {
 
 void task_called_after_GNSS_update(void) {
   GnssInfo.update();
-  if (GnssInfo.isUpdated())
-    switch (GnssInfo.fixMode()) {
-      case 0:  // no fix
-        change_led(2000, 100);
-        break;
+  if (!GnssInfo.isUpdated())
+    return;
 
-      case 1:  // prediction
-        change_led(2000, 1000);
-        break;
+  switch (GnssInfo.fixMode()) {
+  case 0:  // no fix
+    change_led(2000, 100);
+    break;
 
-      case 2:  // 2D fix
-        change_led(1000, 500);
-        break;
+  case 1:  // prediction
+    change_led(2000, 1000);
+    break;
 
-      case 3:  // 3D fix
-        change_led(500, 250);
-        break;
+  case 2:  // 2D fix
+    change_led(1000, 500);
+    break;
 
-      case 4:  // differential
-        change_led(250, 125);
-        break;
+  case 3:  // 3D fix
+    change_led(500, 250);
+    break;
+
+  case 4:  // differential
+    change_led(250, 125);
+    break;
+  }
+
+  if (GnssInfo.fixMode() != 0) {
+    char buf[100] = { 0 };
+
+    TCHAR dir_name[32] = { 0 };
+    sprintf(dir_name, "%04d-%02d-%02d", GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day());
+    if (GnssInfo.date.day() != current_day) {
+      fatFsAgent.make_dir(dir_name);
+
+      current_day = GnssInfo.date.day();
     }
 
-    if (GnssInfo.fixMode() != 0) {
-      char buf[100] = { 0 };
+    TCHAR file_name[32] = { 0 };
+    sprintf(file_name, "%02d.txt", GnssInfo.time.hour());
 
-      TCHAR dir_name[32] = { 0 };
-      sprintf(dir_name, "%04d-%02d-%02d", GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day());
-      if (GnssInfo.date.day() != current_day) {
-          fatFsAgent.make_dir(dir_name);
+    TCHAR file_path[32] = { 0 };
+    strcpy(file_path, dir_name);
+    strcat(file_path, "/");
+    strcat(file_path, file_name);
 
-          current_day = GnssInfo.date.day();
-      }
+    FAT::File text_file(file_path, FA_WRITE | FA_OPEN_ALWAYS);
 
-      TCHAR file_name[32] = { 0 };
-      sprintf(file_name, "%02d.txt", GnssInfo.time.hour());
+    FAT::FileInfo text_info(file_path);
+    DWORD file_size = text_info.size();
+    text_file.lseek(file_size);
 
-      TCHAR file_path[32] = { 0 };
-      strcpy(file_path, dir_name);
-      strcat(file_path, "/");
-      strcat(file_path, file_name);
-
-      FAT::File text_file(file_path, FA_WRITE | FA_OPEN_ALWAYS);
-
-      FAT::FileInfo text_info(file_path);
-      DWORD file_size = text_info.size();
-      text_file.lseek(file_size);
-
-      char lat[32], lon[32];
-      GnssInfo.location.latitude_formatString(lat);
-      GnssInfo.location.longitude_formatString(lon);
-      sprintf(buf, "%02d:%02d:%02d.%02d %s %s %f m %f km/h\n",
-              GnssInfo.time.hour(), GnssInfo.time.minute(), GnssInfo.time.second(), GnssInfo.time.centisecond(),
-              lat, lon,
-              GnssInfo.altitude.meters(), GnssInfo.speed.kph());
-      text_file.write((BYTE*)buf, strlen(buf));
-      text_file.close();
-    }
+    char lat[32], lon[32];
+    GnssInfo.location.latitude_formatString(lat);
+    GnssInfo.location.longitude_formatString(lon);
+    sprintf(buf, "%02d:%02d:%02d.%02d %s %s %f m %f km/h\n",
+	    GnssInfo.time.hour(), GnssInfo.time.minute(), GnssInfo.time.second(), GnssInfo.time.centisecond(),
+	    lat, lon,
+	    GnssInfo.altitude.meters(), GnssInfo.speed.kph());
+    text_file.write((BYTE*)buf, strlen(buf));
+    text_file.close();
+  }
 }
