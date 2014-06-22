@@ -34,6 +34,10 @@ namespace FAT {
 
 
 
+  File::File(void) {
+    memset(&_File, 0, sizeof(_File));
+  }
+
   File::File(const TCHAR *path, BYTE mode) {
     memset(&_File, 0, sizeof(_File));
     _result = f_open(&_File, path, mode);
@@ -43,6 +47,17 @@ namespace FAT {
     _result = FR_OK;
     if (_File.fs)
       _result = f_close(&_File);
+  }
+
+  void File::open(const TCHAR *path, BYTE mode) {
+    if (_File.fs) {
+      _result = f_close(&_File);
+      if (_result != FR_OK)
+	return;
+      memset(&_File, 0, sizeof(_File));
+    }
+
+    _result = f_open(&_File, path, mode);
   }
 
   void File::close(void) {

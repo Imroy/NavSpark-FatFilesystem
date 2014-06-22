@@ -37,9 +37,11 @@ namespace FAT {
     FIL _File;
 
   public:
+    File();
     File(const TCHAR *path, BYTE mode);
     ~File();
 
+    void open(const TCHAR *path, BYTE mode);
     void close(void);
 
     bool eof(void);
