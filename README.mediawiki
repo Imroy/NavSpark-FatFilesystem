@@ -1,6 +1,6 @@
 This is a "port" of ChaN's [http://elm-chan.org/fsw/ff/00index_e.html FatFs] to
 the [http://www.navspark.com.tw/ NavSpark] platform and the modified Arduino
-IDE used for programming NavSparks. It required the [http://navspark.mybigcommerce.com/adapter-board-for-navspark-navspark-bd-navspark-gl/ Adapter Board]
+IDE used for programming NavSparks. It requires the [http://navspark.mybigcommerce.com/adapter-board-for-navspark-navspark-bd-navspark-gl/ Adapter Board]
 for the microSD card slot, or possibly any SD card slot wired identically
 (schematic is available on that store page).
 
@@ -12,7 +12,7 @@ into the examples directory. This allows it to be easily installed as a
 "library" in the Arduino IDE. I packaged this up as a ZIP file and made it
 available on the forum. That ''should'' be what's in the "forum-release" tag.
 
-I then started seriously hacking on the code. I expanded on the classes in
+I then started seriously hacking on the code. I expanded on the wrapper classes in
 <tt>FatFileSystem.{h,cpp}</tt>, making separate <tt>File</tt>, <tt>FileInfo</tt>,
 and <tt>Directory</tt> classes. This actually simplified the code somewhat, which
 tried to do everything in one class. I added methods that wrapped more of
