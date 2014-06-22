@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string.h>
+#include <wchar.h>
 #include "diskio.h" 
 #include "ff.h" 
 
@@ -42,6 +43,7 @@ namespace FAT {
     DWORD tell(void);
     UINT write(const BYTE* buf_p, UINT len);
     UINT write(const char* buf_p) { return write((BYTE*)buf_p, strlen(buf_p)); }
+    UINT write(const wchar_t* buf_p) { return write((BYTE*)buf_p, wcslen(buf_p)); }
     void read (void* buf_p, UINT len, UINT* len_p);
   }; // class File
 
@@ -60,7 +62,7 @@ namespace FAT {
     const WORD date(void) const { return _fileInfo.fdate; }
     const WORD time(void) const { return _fileInfo.ftime; }
     const BYTE attrib(void) const { return _fileInfo.fattrib; }
-    const char* name(void) const { return _fileInfo.fname; }
+    const TCHAR* name(void) const { return _fileInfo.fname; }
 #if _USE_LFN
     const TCHAR* long_name(void) const { return _fileInfo.lfname; }
     const int long_name_size(void) const { return _fileInfo.lfsize; }
