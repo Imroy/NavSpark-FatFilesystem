@@ -177,6 +177,7 @@ namespace FAT {
     if (_result == FR_OK)
       return fi;
 
+    delete fi;
     return NULL;
   }
 
