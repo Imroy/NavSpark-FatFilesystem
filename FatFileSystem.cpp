@@ -85,6 +85,16 @@ namespace FAT {
     _result = f_read(&_sdFile, buf_p, len, len_p);
   }
 
+  void File::truncate(void) {
+    _result = f_truncate(&_sdFile);
+  }
+
+  void File::sync(void) {
+    _result = f_sync(&_sdFile);
+  }
+
+
+
   FileInfo::FileInfo() {
     memset(&_fileInfo, 0, sizeof(_fileInfo));
   }
@@ -93,6 +103,8 @@ namespace FAT {
     memset(&_fileInfo, 0, sizeof(_fileInfo));
     _result = f_stat(path, &_fileInfo);
   }
+
+
 
   Directory::Directory(const TCHAR *path) {
     memset(&_Dir, 0, sizeof(_Dir));
