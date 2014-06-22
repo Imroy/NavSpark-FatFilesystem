@@ -174,8 +174,12 @@ namespace FAT {
   FileInfo* Directory::next_entry(void) {
     FileInfo *fi = new FileInfo;
     _result = f_readdir(&_Dir, &(fi->_fileInfo));
-    if (_result == FR_OK)
-      return fi;
+    if (_result == FR_OK) {
+      if (fi->_fileInfo.fname[0] == 0)		// no more entries
+	_result = f_readdir(&_Dir, NULL);	// so rewind read index
+      else
+	return fi;	// otherwise return it
+    }
 
     delete fi;
     return NULL;
