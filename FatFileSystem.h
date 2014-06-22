@@ -34,7 +34,7 @@ namespace FAT {
 
   class File : public with_result {
   protected:
-    FIL _sdFile;
+    FIL _File;
 
   public:
     File(const TCHAR *path, BYTE mode);

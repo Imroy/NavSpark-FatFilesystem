@@ -35,62 +35,60 @@ namespace FAT {
 
 
   File::File(const TCHAR *path, BYTE mode) {
-    memset(&_sdFile, 0, sizeof(_sdFile));
-    _result = f_open(&_sdFile, path, mode);
+    memset(&_File, 0, sizeof(_File));
+    _result = f_open(&_File, path, mode);
   }
 
   File::~File() {
     _result = FR_OK;
-    if (_sdFile.fs) {
-      _result = f_close(&_sdFile);
-      memset(&_sdFile, 0, sizeof(_sdFile));
-    }
+    if (_File.fs)
+      _result = f_close(&_File);
   }
 
   void File::close(void) {
     _result = FR_OK;
-    if (_sdFile.fs) {
-      _result = f_close(&_sdFile);
-      memset(&_sdFile, 0, sizeof(_sdFile));
+    if (_File.fs) {
+      _result = f_close(&_File);
+      memset(&_File, 0, sizeof(_File));
     }
   }
 
   bool File::eof(void) {
-    return f_eof(&_sdFile);
+    return f_eof(&_File);
   }
 
   DWORD File::size(void) {
-    return f_size(&_sdFile);
+    return f_size(&_File);
   }
 
   void File::lseek(DWORD ofs) {
-    _result = f_lseek(&_sdFile, ofs);
+    _result = f_lseek(&_File, ofs);
   }
 
   DWORD File::tell(void) {
-    return f_tell(&_sdFile);
+    return f_tell(&_File);
   }
 
   UINT File::write(const BYTE* buf_p, UINT len) {
-    _result = f_write(&_sdFile, buf_p, len, &len);
+    _result = f_write(&_File, buf_p, len, &len);
     if (_result != FR_OK)
       return len;
 
-    _result = f_sync(&_sdFile);
+    _result = f_sync(&_File);
 
     return len;
   }
 
   void File::read(void* buf_p, UINT len, UINT* len_p) {
-    _result = f_read(&_sdFile, buf_p, len, len_p);
+    _result = f_read(&_File, buf_p, len, len_p);
   }
 
   void File::truncate(void) {
-    _result = f_truncate(&_sdFile);
+    _result = f_truncate(&_File);
   }
 
   void File::sync(void) {
-    _result = f_sync(&_sdFile);
+    _result = f_sync(&_File);
   }
 
 
@@ -107,7 +105,6 @@ namespace FAT {
 
 
   Directory::Directory(const TCHAR *path) {
-    memset(&_Dir, 0, sizeof(_Dir));
     _result = f_opendir(&_Dir, path);
   }
 
