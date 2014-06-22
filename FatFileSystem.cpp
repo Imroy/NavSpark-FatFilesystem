@@ -55,6 +55,14 @@ namespace FAT {
     }
   }
 
+  bool File::eof(void) {
+    return f_eof(&_sdFile);
+  }
+
+  DWORD File::size(void) {
+    return f_size(&_sdFile);
+  }
+
   void File::lseek(DWORD ofs) {
     _result = f_lseek(&_sdFile, ofs);
   }
