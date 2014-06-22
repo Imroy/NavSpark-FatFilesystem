@@ -24,6 +24,16 @@ namespace FAT {
     _result = f_mkdir(path);
   }
 
+  void FileSystem::unlink(const TCHAR* path) {
+    _result = f_unlink(path);
+  }
+
+  void FileSystem::rename(const TCHAR* oldpath, const TCHAR* newpath) {
+    _result = f_rename(oldpath, newpath);
+  }
+
+
+
   File::File(const TCHAR *path, BYTE mode) {
     memset(&_sdFile, 0, sizeof(_sdFile));
     _result = f_open(&_sdFile, path, mode);

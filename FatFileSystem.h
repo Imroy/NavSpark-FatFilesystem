@@ -27,6 +27,9 @@ namespace FAT {
 
     void initialize();
     void make_dir(const TCHAR *path);
+    void unlink(const TCHAR* path);
+    void rename(const TCHAR* oldpath, const TCHAR* newpath);
+
   }; // class FileSystem
 
   class File : public with_result {
