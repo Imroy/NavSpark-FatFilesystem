@@ -75,6 +75,9 @@ namespace FAT {
 
   public:
     Directory(const TCHAR *path);
+    ~Directory();
+
+    void close(void);
 
     FileInfo* next_entry(void);
 

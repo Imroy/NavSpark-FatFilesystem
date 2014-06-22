@@ -81,6 +81,16 @@ namespace FAT {
     _result = f_opendir(&_Dir, path);
   }
 
+  Directory::~Directory() {
+    _result = f_closedir(&_Dir);
+    memset(&_Dir, 0, sizeof(_Dir));
+  }
+
+  void Directory::close(void) {
+    _result = f_closedir(&_Dir);
+    memset(&_Dir, 0, sizeof(_Dir));
+  }
+
   FileInfo* Directory::next_entry(void) {
     FileInfo *fi = new FileInfo;
     _result = f_readdir(&_Dir, &(fi->_fileInfo));
