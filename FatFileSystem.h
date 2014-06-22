@@ -41,6 +41,9 @@ namespace FAT {
     File(const TCHAR *path, BYTE mode);
     ~File();
 
+    static bool exists(const TCHAR *path);
+    static DWORD size(const TCHAR* path);
+
     void open(const TCHAR *path, BYTE mode);
     void close(void);
 

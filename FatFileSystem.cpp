@@ -49,6 +49,21 @@ namespace FAT {
       _result = f_close(&_File);
   }
 
+  bool File::exists(const TCHAR *path) {
+    FileInfo info(path);
+    if (info.result() == FR_OK)
+      return true;
+
+    return false;
+  }
+
+  DWORD File::size(const TCHAR* path) {
+    FileInfo info(path);
+    if (info.result() == FR_OK)
+      return info.size();
+    return 0;
+  }
+
   void File::open(const TCHAR *path, BYTE mode) {
     if (_File.fs) {
       _result = f_close(&_File);
