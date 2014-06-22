@@ -87,9 +87,11 @@ namespace FAT {
     DIR _Dir;
 
   public:
+    Directory(void);
     Directory(const TCHAR *path);
     ~Directory();
 
+    void open(const TCHAR *path);
     void close(void);
 
     FileInfo* next_entry(void);

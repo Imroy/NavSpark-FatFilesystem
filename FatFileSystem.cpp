@@ -137,18 +137,38 @@ namespace FAT {
 
 
 
+  Directory::Directory(void) {
+    memset(&_Dir, 0, sizeof(_Dir));
+  }
+
   Directory::Directory(const TCHAR *path) {
+    memset(&_Dir, 0, sizeof(_Dir));
     _result = f_opendir(&_Dir, path);
   }
 
   Directory::~Directory() {
-    _result = f_closedir(&_Dir);
-    memset(&_Dir, 0, sizeof(_Dir));
+    _result = FR_OK;
+    if (_Dir.fs)
+      _result = f_closedir(&_Dir);
+  }
+
+  void Directory::open(const TCHAR *path) {
+    if (_Dir.fs) {
+      _result = f_closedir(&_Dir);
+      if (_result != FR_OK)
+	return;
+      memset(&_Dir, 0, sizeof(_Dir));
+    }
+
+    _result = f_opendir(&_Dir, path);
   }
 
   void Directory::close(void) {
-    _result = f_closedir(&_Dir);
-    memset(&_Dir, 0, sizeof(_Dir));
+    _result = FR_OK;
+    if (_Dir.fs) {
+      _result = f_closedir(&_Dir);
+      memset(&_Dir, 0, sizeof(_Dir));
+    }
   }
 
   FileInfo* Directory::next_entry(void) {
