@@ -11,6 +11,7 @@ namespace FAT {
   {}
 
   FileSystem::~FileSystem() {
+    _result = f_mount(NULL, "", 0);
   }
 
   void FileSystem::initialize() {
@@ -18,6 +19,8 @@ namespace FAT {
       return;
 
     _result = f_mount(&_fatFs, "", 0);
+    if (_result == FR_OK)
+      _mmcInit = true;
   }
 
   void FileSystem::make_dir(const TCHAR *path) {
