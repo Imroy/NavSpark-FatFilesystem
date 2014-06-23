@@ -54,7 +54,7 @@ namespace FAT {
     UINT write(const BYTE* buf_p, UINT len);
     UINT write(const char* buf_p) { return write((BYTE*)buf_p, strlen(buf_p)); }
     UINT write(const wchar_t* buf_p) { return write((BYTE*)buf_p, wcslen(buf_p)); }
-    void read (void* buf_p, UINT len, UINT* len_p);
+    UINT read (void* buf_p, UINT len);
     void truncate(void);
     void sync(void);
 

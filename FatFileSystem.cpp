@@ -112,8 +112,9 @@ namespace FAT {
     return len;
   }
 
-  void File::read(void* buf_p, UINT len, UINT* len_p) {
-    _result = f_read(&_File, buf_p, len, len_p);
+  UINT File::read(void* buf_p, UINT len) {
+    _result = f_read(&_File, buf_p, len, &len);
+    return len;
   }
 
   void File::truncate(void) {
