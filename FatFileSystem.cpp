@@ -104,11 +104,6 @@ namespace FAT {
 
   UINT File::write(const BYTE* buf_p, UINT len) {
     _result = f_write(&_File, buf_p, len, &len);
-    if (_result != FR_OK)
-      return len;
-
-    _result = f_sync(&_File);
-
     return len;
   }
 
