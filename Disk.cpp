@@ -677,6 +677,7 @@ WCHAR ff_wtoupper ( // Upper converted character
 }
 
 DWORD get_fattime (void) {
+#if defined(USE_UART1_FOR_NMEA) && (USE_UART1_FOR_NMEA==1)
   if (GnssInfo.fixMode() != 0)
     return ((DWORD)(GnssInfo.date.year() - 1980) << 25)
       | ((DWORD)GnssInfo.date.month() << 21)
@@ -684,6 +685,7 @@ DWORD get_fattime (void) {
       | ((DWORD)GnssInfo.time.hour() << 11)
       | ((DWORD)GnssInfo.time.minute() << 5)
       | ((DWORD)GnssInfo.time.second() >> 1);
+#endif
 
   return 0;
 }
