@@ -11,14 +11,14 @@ namespace FAT {
   {}
 
   FileSystem::~FileSystem() {
-    _result = f_mount(NULL, "", 0);
+    _result = f_mount(NULL, _TEXT(""), 0);
   }
 
   void FileSystem::initialize() {
     if (_mmcInit)
       return;
 
-    _result = f_mount(&_fatFs, "", 0);
+    _result = f_mount(&_fatFs, _TEXT(""), 0);
     if (_result == FR_OK)
       _mmcInit = true;
   }
