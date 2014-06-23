@@ -52,11 +52,12 @@ extern PARTITION VolToPart[];	/* Volume - Partition resolution table */
 /* Type of path name strings on FatFs API */
 
 #if _LFN_UNICODE			/* Unicode string */
+#include <wchar.h>
 #if !_USE_LFN
 #error _LFN_UNICODE must be 0 at non-LFN cfg.
 #endif
 #ifndef _INC_TCHAR
-typedef WCHAR TCHAR;
+typedef wchar_t TCHAR;
 #define _T(x) L ## x
 #define _TEXT(x) L ## x
 #endif
