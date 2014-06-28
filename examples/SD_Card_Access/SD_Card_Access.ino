@@ -78,7 +78,7 @@ void setup() {
     UINT  readSize = 64;
     len = readSize;
     do {
-      text_file.read(buf, len, &len);
+      len = text_file.read(buf, len);
       buf[len] = 0;  //Add string null terminator
       UartOutput(withGNSSLib, buf, len);
     } while(len == readSize);
@@ -97,7 +97,7 @@ void setup() {
     //Read first 8 bytes and dump them to uart.
     UINT readSize = 8;
     len = readSize;
-    bin_file.read(buf, len, &len);
+    bin_file.read(buf, len);
     bin_file.close();
   }
   
