@@ -3,8 +3,10 @@
 bool withGNSSLib = FALSE;
 
 FAT::FileSystem fatFsAgent;
+FAT::File csv_file;
 uint8_t current_day = 0;
 uint8_t current_hour = 255;
+signed char sync_second = -128;
 
 int led_cycle_time = -1, led_on_time = -1;
 long int last_cycle;
@@ -100,34 +102,40 @@ void task_called_after_GNSS_update(void) {
   }
 
   if (GnssInfo.fixMode() != 0) {
-    char buf[512] = { 0 };
-
     TCHAR dir_name[32] = { 0 };
     sprintf(dir_name, "%04d-%02d-%02d", GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day());
     if (GnssInfo.date.day() != current_day) {
       fatFsAgent.make_dir(dir_name);
+      csv_file.close();
 
       current_day = GnssInfo.date.day();
+      current_hour = GnssInfo.time.hour();
+
+    } else if (GnssInfo.time.hour() != current_hour) {
+      csv_file.close();
+      current_hour = GnssInfo.time.hour();
     }
 
-    TCHAR file_name[32] = { 0 };
-    sprintf(file_name, "%02d.csv", GnssInfo.time.hour());
+    if (!csv_file.is_open()) {
+      TCHAR file_name[32] = { 0 };
+      sprintf(file_name, "%02d.csv", GnssInfo.time.hour());
 
-    TCHAR file_path[32] = { 0 };
-    strcpy(file_path, dir_name);
-    strcat(file_path, "/");
-    strcat(file_path, file_name);
+      TCHAR file_path[32] = { 0 };
+      strcpy(file_path, dir_name);
+      strcat(file_path, "/");
+      strcat(file_path, file_name);
 
-    FAT::File csv_file;
-    if (FAT::File::exists(file_path)) {
-      csv_file.open(file_path, FA_WRITE | FA_OPEN_EXISTING);
-      csv_file.lseek(csv_file.size());
-    } else {
-      csv_file.open(file_path, FA_WRITE | FA_CREATE_NEW);
-      csv_file.write("Type, NumSats, Date, Time, Latitude, Longitude, Altitude, Speed, Course, PDOP, HDOP, VDOP\n");
+      if (FAT::File::exists(file_path)) {
+	csv_file.open(file_path, FA_WRITE | FA_OPEN_EXISTING);
+	csv_file.lseek(csv_file.size());
+      } else {
+	csv_file.open(file_path, FA_WRITE | FA_CREATE_NEW);
+	csv_file.write("Type, NumSats, Date, Time, Latitude, Longitude, Altitude, Speed, Course, PDOP, HDOP, VDOP\n");
+      }
     }
 
     int numsats = GnssInfo.satellites.numGPSInUse(NULL) + GnssInfo.satellites.numBD2InUse(NULL) + GnssInfo.satellites.numGLNInUse(NULL);
+    char buf[512] = { 0 };
     sprintf(buf, "%d, %d, %04d-%02d-%02d, %02d:%02d:%02d.%02d, %f, %f, %f, %f, %f, %f, %f, %f\n",
             GnssInfo.fixMode(), numsats,
 	    GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day(),
@@ -136,6 +144,11 @@ void task_called_after_GNSS_update(void) {
 	    GnssInfo.speed.kph(), GnssInfo.course.deg(),
             GnssInfo.dop.position(), GnssInfo.dop.horizontal(), GnssInfo.dop.vertical());
     csv_file.write((BYTE*)buf, strlen(buf));
-    csv_file.close();
+
+    if (GnssInfo.time.second() - sync_second > 5) {
+      csv_file.sync();
+
+      sync_second = GnssInfo.time.second();
+    }
   }
 }
