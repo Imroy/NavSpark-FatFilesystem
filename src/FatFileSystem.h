@@ -47,6 +47,8 @@ namespace FAT {
     void open(const TCHAR *path, BYTE mode);
     void close(void);
 
+    bool is_open(void) const { return _File.fs > 0; }
+
     bool eof(void);
     DWORD size(void);
     void lseek(DWORD ofs);
@@ -93,6 +95,8 @@ namespace FAT {
 
     void open(const TCHAR *path);
     void close(void);
+
+    bool is_open(void) const { return _Dir.fs > 0; }
 
     FileInfo* next_entry(void);
 
