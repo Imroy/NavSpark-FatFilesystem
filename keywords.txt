@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map For FatFileSystem
+#######################################
+
+#######################################
+# Class (KEYWORD3)
+#######################################
+
+with_result	KEYWORD3
+FileSystem	KEYWORD3
+File		KEYWORD3
+Directory	KEYWORD3
+FileInfo	KEYWORD3
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

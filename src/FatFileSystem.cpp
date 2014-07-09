@@ -2,7 +2,7 @@
 #include "HardwareSerial.h"
 #include <stdio.h>
 #include <string.h>
-#include "Arduino.h" 
+#include "Arduino.h"
 
 namespace FAT {
 

@@ -9,18 +9,18 @@
 #define CMD0  (0x40+0)      // GO_IDLE_STATE, Software reset.
 #define CMD1  (0x40+1)      // SEND_OP_COND, Initiate initialization process.
 #define CMD8  (0x40+8)      // SEND_IF_COND, For only SDC V2. Check voltage range.
-#define CMD9  (0x40+9)      // SEND_CSD, Read CSD register. 
+#define CMD9  (0x40+9)      // SEND_CSD, Read CSD register.
 #define CMD10 (0x40+10)     // SEND_CID, Read CID register.
 #define CMD12 (0x40+12)     // STOP_TRANSMISSION, Stop to read data.
-#define ACMD13  (0xC0+13)   // SD_STATUS (SDC) 
+#define ACMD13  (0xC0+13)   // SD_STATUS (SDC)
 #define CMD16 (0x40+16)     // SET_BLOCKLEN, Change R/W block size.
 #define CMD17 (0x40+17)     // READ_SINGLE_BLOCK, Read a block.
 #define CMD18 (0x40+18)     // READ_MULTIPLE_BLOCK, Read multiple blocks.
-#define ACMD23  (0xC0+23)   // SET_WR_BLK_ERASE_COUNT (SDC) 
+#define ACMD23  (0xC0+23)   // SET_WR_BLK_ERASE_COUNT (SDC)
 #define CMD24 (0x40+24)     // WRITE_BLOCK, Write a block.
 #define CMD25 (0x40+25)     // WRITE_MULTIPLE_BLOCK, Write multiple blocks.
-//#define CMD41 (0x40+41)   // SEND_OP_COND (ACMD) 
-#define ACMD41  (0xC0+41)   // SEND_OP_COND (SDC) 
+//#define CMD41 (0x40+41)   // SEND_OP_COND (ACMD)
+#define ACMD41  (0xC0+41)   // SEND_OP_COND (SDC)
 #define CMD55 (0x40+55)     // APP_CMD, Leading command of ACMD<n> command.
 #define CMD58 (0x40+58)     // READ_OCR, Read OCR.
 //#define ACMD41  (0x40+41)   // SEND_OP_COND (SDC), For only SDC. Initiate initialization process.
@@ -45,30 +45,30 @@ static
 BYTE CardType;      /* Card type flags */
 
 #if(SHOW_DEBUG)
-//static char text_buf[64]; 
+//static char text_buf[64];
 #endif
 
 void xmit_spi(U08 data)
 {
-  spiMaster.resetTx(); 
+  spiMaster.resetTx();
   spiMaster.write(data);
-  spiMaster.transfer(1); 
+  spiMaster.transfer(1);
 }
 
 uint8_t rcvr_spi()
 {
-  spiMaster.resetTx(); 
-  spiMaster.resetRx(); 
+  spiMaster.resetTx();
+  spiMaster.resetRx();
   spiMaster.write(0xFF);
-  spiMaster.transfer(1); 
-  return spiMaster.read(); 
+  spiMaster.transfer(1);
+  return spiMaster.read();
 }
 
 void dummy_clock(int n)
 {
   for(int i=n; i; i--)
   {
-    rcvr_spi(); 
+    rcvr_spi();
   }
 }
 
@@ -177,31 +177,31 @@ BOOL xmit_datablock (
 )
 {
   BYTE resp;
-//text_len = gnss_sti_sprintf(buf, "DW1(%d, %x, %d, %d)\r\n", drv, buff, sector, count);  
+//text_len = gnss_sti_sprintf(buf, "DW1(%d, %x, %d, %d)\r\n", drv, buff, sector, count);
 //gnss_uart_putline(0, (U08*)buf, text_len);
 
-  if (wait_ready() != 0xFF) 
+  if (wait_ready() != 0xFF)
   {
     return FALSE;
   }
 
   xmit_spi(token);          /* Xmit data token */
-  if (token == 0xFD) 
+  if (token == 0xFD)
   {
     wait_ready();
-    return TRUE;  
+    return TRUE;
   }
-  
+
   /* Is data token */
   int wc = 256;
   const BYTE *p = buff;
-  do 
+  do
   {              /* Xmit the 512 byte data block to MMC */
     xmit_spi(*p);
     p++;
     xmit_spi(*p);
     p++;
-    spiMaster.resetRx(); 
+    spiMaster.resetRx();
   } while (--wc);
 
   xmit_spi(0xFF);         /* CRC (Dummy) */
@@ -223,21 +223,21 @@ BYTE send_cmd (
   DWORD arg   /* Argument */
 )
 {
-  BYTE n, res = 0; 
-  if (cmd & 0x80) 
+  BYTE n, res = 0;
+  if (cmd & 0x80)
   {
     cmd &= 0x7F;
     res = send_cmd(CMD55, 0);
-    if (res > 1) 
+    if (res > 1)
     {
       return res;
     }
     else
     {
-      dummy_clock(10);  
+      dummy_clock(10);
     }
   }
-  
+
   /* Select the card and wait for ready */
   deselect();
   if (cmd == CMD0)
@@ -246,12 +246,12 @@ BYTE send_cmd (
   }
   else
   {
-    if (!select()) 
+    if (!select())
     {
       return 0xFF;
     }
   }
-  
+
   /* Send command packet */
   xmit_spi(cmd);            /* Start + Command index */
   xmit_spi((BYTE)(arg >> 24));    /* Argument[31..24] */
@@ -264,7 +264,7 @@ BYTE send_cmd (
   xmit_spi(n);
 
   /* Receive command response */
-  if (cmd == CMD12) 
+  if (cmd == CMD12)
   {
     rcvr_spi();   /* Skip a stuff byte when stop reading */
   }
@@ -280,70 +280,70 @@ BYTE send_cmd (
 DSTATUS disk_initialize (BYTE drv)
 {
   BYTE cmd, ty, ocr[4];
-  
+
   if (drv) return STA_NOINIT;     /* Supports only single drive */
-  if (Stat & STA_NODISK) 
+  if (Stat & STA_NODISK)
   {
     return Stat; /* No card in the socket */
   }
   power_on();             /* Force socket power on */
   FCLK_SLOW();
-  
-  dummy_clock(100);  
-  
+
+  dummy_clock(100);
+
   ty = 0;
   if (1 != send_cmd(CMD0, 0))
   {
     return 0xFF;
   }
- 
-  dummy_clock(80);  
-  if (1 == send_cmd(CMD8, 0x1AA)) 
+
+  dummy_clock(80);
+  if (1 == send_cmd(CMD8, 0x1AA))
   {  //SDC V2
     for (int n=0; n<4; ++n) ocr[n] = rcvr_spi();
 
     if (ocr[2] == 0x01 && ocr[3] == 0xAA)  //The card can work at vdd range of 2.7-3.6V
     {
       while(send_cmd(ACMD41, 1UL << 30)) {};
-      dummy_clock(10);  
+      dummy_clock(10);
       if(0 == send_cmd(CMD58, 0))
       {
         for (int n=0; n<4; ++n) ocr[n] = rcvr_spi();
-        ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;  // SDv2 
+        ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;  // SDv2
       }
     }
   }
   else
   {  //SDV or MMC, no card to test
-    if (send_cmd(ACMD41, 0) <= 1)  
+    if (send_cmd(ACMD41, 0) <= 1)
     {
-      ty = CT_SD1; 
+      ty = CT_SD1;
       cmd = ACMD41;
     }
     else
     {
-      ty = CT_MMC;       
-      cmd = CMD1;    
+      ty = CT_MMC;
+      cmd = CMD1;
     }
-    dummy_clock(10);  
+    dummy_clock(10);
     while(send_cmd(cmd, 0)) {};
-    dummy_clock(10);  
+    dummy_clock(10);
     if (send_cmd(CMD16, 512) != 0) // Set R/W block length to 512
     {
       ty = 0;
-    }    
+    }
   }
   CardType = ty;
   deselect();
-  if (ty) 
+  if (ty)
   {     /* Initialization succeded */
     Stat &= ~STA_NOINIT;    /* Clear STA_NOINIT */
     FCLK_FAST();
-  } 
-  else 
+  }
+  else
   {      /* Initialization failed */
     power_off();
-  }  
+  }
   return Stat;
 }
 
@@ -361,7 +361,7 @@ DSTATUS disk_status (
 
 
 //-----------------------------------------------------------------------
-// Read Sector(s)                                                        
+// Read Sector(s)
 //-----------------------------------------------------------------------
 
 DRESULT disk_read (
@@ -374,20 +374,20 @@ DRESULT disk_read (
   if (drv || !count) return RES_PARERR;
   if (Stat & STA_NOINIT) return RES_NOTRDY;
 
-  if (!(CardType & CT_BLOCK)) sector *= 512;  // Convert to byte address if needed 
+  if (!(CardType & CT_BLOCK)) sector *= 512;  // Convert to byte address if needed
 
-  if (count == 1) { // Single block read 
-    if ((send_cmd(CMD17, sector) == 0)  // READ_SINGLE_BLOCK 
+  if (count == 1) { // Single block read
+    if ((send_cmd(CMD17, sector) == 0)  // READ_SINGLE_BLOCK
       && rcvr_datablock(buff, 512))
       count = 0;
   }
-  else {        // Multiple block read 
-    if (send_cmd(CMD18, sector) == 0) { // READ_MULTIPLE_BLOCK 
+  else {        // Multiple block read
+    if (send_cmd(CMD18, sector) == 0) { // READ_MULTIPLE_BLOCK
       do {
         if (!rcvr_datablock(buff, 512)) break;
         buff += 512;
       } while (--count);
-      send_cmd(CMD12, 0);       // STOP_TRANSMISSION 
+      send_cmd(CMD12, 0);       // STOP_TRANSMISSION
     }
   }
   deselect();
@@ -404,20 +404,20 @@ DRESULT disk_read3 (
   if (drv || !count) return RES_PARERR;
   if (Stat & STA_NOINIT) return RES_NOTRDY;
 
-  if (!(CardType & CT_BLOCK)) sector *= 512;  // Convert to byte address if needed 
+  if (!(CardType & CT_BLOCK)) sector *= 512;  // Convert to byte address if needed
 
-  if (count == 1) { // Single block read 
-    if ((send_cmd(CMD17, sector) == 0)  // READ_SINGLE_BLOCK 
+  if (count == 1) { // Single block read
+    if ((send_cmd(CMD17, sector) == 0)  // READ_SINGLE_BLOCK
       && rcvr_datablock(buff, 512))
       count = 0;
   }
-  else {        // Multiple block read 
-    if (send_cmd(CMD18, sector) == 0) { // READ_MULTIPLE_BLOCK 
+  else {        // Multiple block read
+    if (send_cmd(CMD18, sector) == 0) { // READ_MULTIPLE_BLOCK
       do {
         if (!rcvr_datablock(buff, 512)) break;
         buff += 512;
       } while (--count);
-      send_cmd(CMD12, 0);       // STOP_TRANSMISSION 
+      send_cmd(CMD12, 0);       // STOP_TRANSMISSION
     }
   }
   deselect();
@@ -441,37 +441,37 @@ DRESULT disk_write (
   if (Stat & STA_PROTECT) return RES_WRPRT;
 
   if (!(CardType & CT_BLOCK))
-  { 
-    sector *= 512;  // Convert to byte address if needed 
+  {
+    sector *= 512;  // Convert to byte address if needed
   }
 
-  if (count == 1) 
-  { // Single block write 
-    // WRITE_BLOCK 
+  if (count == 1)
+  { // Single block write
+    // WRITE_BLOCK
     if ((send_cmd(CMD24, sector) == 0) && xmit_datablock(buff, 0xFE))
     {
       count = 0;
     }
-  } //if (count == 1) 
-  else 
-  { // Multiple block write 
-    if (CardType & CT_SDC) 
+  } //if (count == 1)
+  else
+  { // Multiple block write
+    if (CardType & CT_SDC)
     {
       send_cmd(ACMD23, count);
     }
-    if (send_cmd(CMD25, sector) == 0) 
-    { // WRITE_MULTIPLE_BLOCK 
-      do 
+    if (send_cmd(CMD25, sector) == 0)
+    { // WRITE_MULTIPLE_BLOCK
+      do
       {
-        if (!xmit_datablock(buff, 0xFC)) 
+        if (!xmit_datablock(buff, 0xFC))
           break;
         buff += 512;
       } while (--count);
-      if (!xmit_datablock(0, 0xFD)) // STOP_TRAN token 
+      if (!xmit_datablock(0, 0xFD)) // STOP_TRAN token
       {
         count = 1;
       }
-    } //if (send_cmd(CMD25, sector) == 0) 
+    } //if (send_cmd(CMD25, sector) == 0)
   } //if (count == 1) else
   return count ? RES_ERROR : RES_OK;
 }
@@ -499,16 +499,16 @@ DRESULT disk_ioctl (
 
   if (ctrl == CTRL_POWER) {
     switch (*ptr) {
-    case 0:   // Sub control code == 0 (POWER_OFF) 
+    case 0:   // Sub control code == 0 (POWER_OFF)
       if (chk_power())
-        power_off();    // Power off 
+        power_off();    // Power off
       res = RES_OK;
       break;
-    case 1:   // Sub control code == 1 (POWER_ON) 
-      power_on();       // Power on 
+    case 1:   // Sub control code == 1 (POWER_ON)
+      power_on();       // Power on
       res = RES_OK;
       break;
-    case 2:   // Sub control code == 2 (POWER_GET) 
+    case 2:   // Sub control code == 2 (POWER_GET)
       *(ptr+1) = (BYTE)chk_power();
       res = RES_OK;
       break;
@@ -520,16 +520,16 @@ DRESULT disk_ioctl (
     if (Stat & STA_NOINIT) return RES_NOTRDY;
 
     switch (ctrl) {
-    case CTRL_SYNC :    // Make sure that no pending write process. Do not remove this or written sector might not left updated. 
+    case CTRL_SYNC :    // Make sure that no pending write process. Do not remove this or written sector might not left updated.
       if (select()) {
         res = RES_OK;
         deselect();
       }
       break;
 
-    case GET_SECTOR_COUNT : // Get number of sectors on the disk (DWORD) 
+    case GET_SECTOR_COUNT : // Get number of sectors on the disk (DWORD)
       if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {
-        if ((csd[0] >> 6) == 1) { // SDC ver 2.00 
+        if ((csd[0] >> 6) == 1) { // SDC ver 2.00
           csize = csd[9] + ((WORD)csd[8] << 8) + 1;
           *(DWORD*)buff = (DWORD)csize << 10;
         } else {          // SDC ver 1.XX or MMC
@@ -541,26 +541,26 @@ DRESULT disk_ioctl (
       }
       break;
 
-    case GET_SECTOR_SIZE :  // Get R/W sector size (WORD) 
+    case GET_SECTOR_SIZE :  // Get R/W sector size (WORD)
       *(WORD*)buff = 512;
       res = RES_OK;
       break;
 
-    case GET_BLOCK_SIZE : // Get erase block size in unit of sector (DWORD) 
-      if (CardType & CT_SD2) {  // SDC ver 2.00 
-        if (send_cmd(ACMD13, 0) == 0) { // Read SD status 
+    case GET_BLOCK_SIZE : // Get erase block size in unit of sector (DWORD)
+      if (CardType & CT_SD2) {  // SDC ver 2.00
+        if (send_cmd(ACMD13, 0) == 0) { // Read SD status
           rcvr_spi();
-          if (rcvr_datablock(csd, 16)) {        // Read partial block 
-            for (n = 64 - 16; n; n--) rcvr_spi(); // Purge trailing data 
+          if (rcvr_datablock(csd, 16)) {        // Read partial block
+            for (n = 64 - 16; n; n--) rcvr_spi(); // Purge trailing data
             *(DWORD*)buff = 16UL << (csd[10] >> 4);
             res = RES_OK;
           }
         }
-      } else {          // SDC ver 1.XX or MMC 
-        if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {  // Read CSD 
-          if (CardType & CT_SD1) {  // SDC ver 1.XX 
+      } else {          // SDC ver 1.XX or MMC
+        if ((send_cmd(CMD9, 0) == 0) && rcvr_datablock(csd, 16)) {  // Read CSD
+          if (CardType & CT_SD1) {  // SDC ver 1.XX
             *(DWORD*)buff = (((csd[10] & 63) << 1) + ((WORD)(csd[11] & 128) >> 7) + 1) << ((csd[13] >> 6) - 1);
-          } else {          // MMC 
+          } else {          // MMC
             *(DWORD*)buff = ((WORD)((csd[10] & 124) >> 2) + 1) * (((csd[11] & 3) << 3) + ((csd[11] & 224) >> 5) + 1);
           }
           res = RES_OK;
@@ -568,32 +568,32 @@ DRESULT disk_ioctl (
       }
       break;
 
-    case MMC_GET_TYPE :   // Get card type flags (1 byte) 
+    case MMC_GET_TYPE :   // Get card type flags (1 byte)
       *ptr = CardType;
       res = RES_OK;
       break;
 
-    case MMC_GET_CSD :    // Receive CSD as a data block (16 bytes) 
-      if (send_cmd(CMD9, 0) == 0    /// READ_CSD 
+    case MMC_GET_CSD :    // Receive CSD as a data block (16 bytes)
+      if (send_cmd(CMD9, 0) == 0    /// READ_CSD
         && rcvr_datablock(ptr, 16))
         res = RES_OK;
       break;
 
-    case MMC_GET_CID :    // Receive CID as a data block (16 bytes) 
-      if (send_cmd(CMD10, 0) == 0   // READ_CID 
+    case MMC_GET_CID :    // Receive CID as a data block (16 bytes)
+      if (send_cmd(CMD10, 0) == 0   // READ_CID
         && rcvr_datablock(ptr, 16))
         res = RES_OK;
       break;
 
-    case MMC_GET_OCR :    // Receive OCR as an R3 resp (4 bytes) 
-      if (send_cmd(CMD58, 0) == 0) {  // READ_OCR 
+    case MMC_GET_OCR :    // Receive OCR as an R3 resp (4 bytes)
+      if (send_cmd(CMD58, 0) == 0) {  // READ_OCR
         for (n = 4; n; n--) *ptr++ = rcvr_spi();
         res = RES_OK;
       }
       break;
 
-    case MMC_GET_SDSTAT : // Receive SD statsu as a data block (64 bytes) 
-      if (send_cmd(ACMD13, 0) == 0) { // SD_STATUS 
+    case MMC_GET_SDSTAT : // Receive SD statsu as a data block (64 bytes)
+      if (send_cmd(ACMD13, 0) == 0) { // SD_STATUS
         rcvr_spi();
         if (rcvr_datablock(ptr, 64))
           res = RES_OK;
@@ -662,8 +662,8 @@ WCHAR ff_convert (  /* Converted character, Returns zero on error */
   return c;
 }
 
-WCHAR ff_wtoupper ( // Upper converted character 
-  WCHAR chr   // Input character 
+WCHAR ff_wtoupper ( // Upper converted character
+  WCHAR chr   // Input character
 )
 {
   static const WCHAR tbl_lower[] = { 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0xA1, 0x00A2, 0x00A3, 0x00A5, 0x00AC, 0x00AF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0x0FF, 0x101, 0x103, 0x105, 0x107, 0x109, 0x10B, 0x10D, 0x10F, 0x111, 0x113, 0x115, 0x117, 0x119, 0x11B, 0x11D, 0x11F, 0x121, 0x123, 0x125, 0x127, 0x129, 0x12B, 0x12D, 0x12F, 0x131, 0x133, 0x135, 0x137, 0x13A, 0x13C, 0x13E, 0x140, 0x142, 0x144, 0x146, 0x148, 0x14B, 0x14D, 0x14F, 0x151, 0x153, 0x155, 0x157, 0x159, 0x15B, 0x15D, 0x15F, 0x161, 0x163, 0x165, 0x167, 0x169, 0x16B, 0x16D, 0x16F, 0x171, 0x173, 0x175, 0x177, 0x17A, 0x17C, 0x17E, 0x192, 0x3B1, 0x3B2, 0x3B3, 0x3B4, 0x3B5, 0x3B6, 0x3B7, 0x3B8, 0x3B9, 0x3BA, 0x3BB, 0x3BC, 0x3BD, 0x3BE, 0x3BF, 0x3C0, 0x3C1, 0x3C3, 0x3C4, 0x3C5, 0x3C6, 0x3C7, 0x3C8, 0x3C9, 0x3CA, 0x430, 0x431, 0x432, 0x433, 0x434, 0x435, 0x436, 0x437, 0x438, 0x439, 0x43A, 0x43B, 0x43C, 0x43D, 0x43E, 0x43F, 0x440, 0x441, 0x442, 0x443, 0x444, 0x445, 0x446, 0x447, 0x448, 0x449, 0x44A, 0x44B, 0x44C, 0x44D, 0x44E, 0x44F, 0x451, 0x452, 0x453, 0x454, 0x455, 0x456, 0x457, 0x458, 0x459, 0x45A, 0x45B, 0x45C, 0x45E, 0x45F, 0x2170, 0x2171, 0x2172, 0x2173, 0x2174, 0x2175, 0x2176, 0x2177, 0x2178, 0x2179, 0x217A, 0x217B, 0x217C, 0x217D, 0x217E, 0x217F, 0xFF41, 0xFF42, 0xFF43, 0xFF44, 0xFF45, 0xFF46, 0xFF47, 0xFF48, 0xFF49, 0xFF4A, 0xFF4B, 0xFF4C, 0xFF4D, 0xFF4E, 0xFF4F, 0xFF50, 0xFF51, 0xFF52, 0xFF53, 0xFF54, 0xFF55, 0xFF56, 0xFF57, 0xFF58, 0xFF59, 0xFF5A, 0 };

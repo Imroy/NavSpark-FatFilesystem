@@ -2,8 +2,8 @@
 
 #include <string.h>
 #include <wchar.h>
-#include "diskio.h" 
-#include "ff.h" 
+#include "diskio.h"
+#include "ff.h"
 
 namespace FAT {
 
