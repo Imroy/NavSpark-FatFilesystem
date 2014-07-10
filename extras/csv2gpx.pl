@@ -2,7 +2,7 @@
 
 # Under Debian/Ubuntu make sure these Perl libraries are installed:
 #
-# sudo apt-get install libtext-csv-perl libdatetime-format-iso8601-perl
+# sudo apt-get install libdatetime-perl libdatetime-format-iso8601-perl libtext-csv-perl
 #
 
 use strict;
