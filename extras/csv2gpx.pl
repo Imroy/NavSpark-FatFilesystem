@@ -8,6 +8,7 @@
 use strict;
 use IO::Handle;
 use DateTime;
+use DateTime::Duration;
 use DateTime::Format::ISO8601;
 use Text::CSV;
 
@@ -24,9 +25,11 @@ EOX
 }
 
 sub gpx_start_track {
-  my ($trk) = @_;
+  my ($num) = @_;
+  $num ||= 0;
   print << "EOX";
   <trk>
+    <number>$num</number>
     <trkseg>
 EOX
 }
@@ -83,7 +86,10 @@ my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
   }
   $csv->column_names($header);
 }
-&gpx_start_track;
+my $track_num = 1;
+&gpx_start_track($track_num);
+my $prev_time;
+my $max_interval = DateTime::Duration->new(minutes => 5);
 while (my $row = $csv->getline_hr($input)) {
   foreach (values %{$row}) {
     s{^\s+} {};
@@ -93,6 +99,12 @@ while (my $row = $csv->getline_hr($input)) {
   $row->{fix} = $fixtypes[delete $row->{type}];
   $row->{time} = DateTime::Format::ISO8601->parse_datetime($row->{date} . 'T' . $row->{time} . 'Z');
   delete $row->{date};
+  if ((defined $prev_time) && ($row->{time} > $prev_time + $max_interval)) {
+    &gpx_end_track;
+    $track_num++;
+    &gpx_start_track($track_num);
+  }
+  $prev_time = $row->{time};
 
   gpx_track_point($row);
 }
