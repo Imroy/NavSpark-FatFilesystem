@@ -109,7 +109,8 @@ void task_called_after_GNSS_update(void) {
 
   if (GnssInfo.fixMode() != 0) {
     TCHAR dir_name[32] = { 0 };
-    sprintf(dir_name, "%04d-%02d-%02d", GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day());
+    sprintf(dir_name, "%04d-%02d-%02d",
+	    GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day());
     if (GnssInfo.date.day() != current_day) {
       fatFsAgent.make_dir(dir_name);
       csv_file.close();
@@ -124,7 +125,9 @@ void task_called_after_GNSS_update(void) {
 
     if (!csv_file.is_open()) {
       TCHAR file_name[32] = { 0 };
-      sprintf(file_name, "%02d.csv", GnssInfo.time.hour());
+      sprintf(file_name, "%04d-%02d-%02d %02dh.csv",
+	      GnssInfo.date.year(), GnssInfo.date.month(), GnssInfo.date.day(),
+	      GnssInfo.time.hour());
 
       TCHAR file_path[32] = { 0 };
       strcpy(file_path, dir_name);
