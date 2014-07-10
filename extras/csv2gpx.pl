@@ -14,6 +14,8 @@ use DateTime::Duration;
 use DateTime::Format::ISO8601;
 use Text::CSV;
 
+my $gpx_tag_level = 0;	# 0 => doc, 1 => gpx root, 2 => trk, 3 => trkseg
+
 sub gpx_header {
   print << "EOX";
 <?xml version="1.0" encoding="utf-8"?>
@@ -24,21 +26,30 @@ sub gpx_header {
      xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
      version="1.1" creator="NavSpark logger, csv2gpx">
 EOX
+  $gpx_tag_level = 1;
 }
 
+my $track_num = 1;
+
 sub gpx_start_track {
-  my ($num) = @_;
-  $num ||= 0;
+  &gpx_end_track if ($gpx_tag_level > 1);
+  &gpx_header if ($gpx_tag_level < 1);
+
   print << "EOX";
   <trk>
-    <number>$num</number>
+    <number>$track_num</number>
 EOX
+  $gpx_tag_level = 2;
 }
 
 sub gpx_start_trackseg {
+  &gpx_end_trackseg if ($gpx_tag_level > 2);
+  &gpx_start_track if ($gpx_tag_level < 2);
+
   print << "EOX";
     <trkseg>
 EOX
+  $gpx_tag_level = 3;
 }
 
 my @fixtypes = qw{none none 2d 3d dgps};
@@ -46,6 +57,8 @@ my @fixtypes = qw{none none 2d 3d dgps};
 sub gpx_track_point {
   my ($pt) = @_;
   my $time = $pt->{time}->strftime('%FT%T.%03NZ');
+
+  &gpx_start_trackseg if ($gpx_tag_level < 3);
 
   print << "EOX";
       <trkpt lat="$pt->{latitude}" lon="$pt->{longitude}">
@@ -61,21 +74,35 @@ EOX
 }
 
 sub gpx_end_trackseg {
-  print << "EOX";
+  if ($gpx_tag_level == 3) {
+    print << "EOX";
     </trkseg>
 EOX
+    $gpx_tag_level = 2;
+  }
 }
 
 sub gpx_end_track {
-  print << "EOX";
+  &gpx_end_trackseg if ($gpx_tag_level > 2);
+
+  if ($gpx_tag_level == 2) {
+    print << "EOX";
   </trk>
 EOX
+    $track_num++;
+    $gpx_tag_level = 1;
+  }
 }
 
 sub gpx_footer {
-  print << "EOX";
+  &gpx_end_track if ($gpx_tag_level > 1);
+
+  if ($gpx_tag_level == 1) {
+    print << "EOX";
 </gpx>
 EOX
+    $gpx_tag_level = 0;
+  }
 }
 
 my $input;
@@ -86,8 +113,6 @@ if (scalar @ARGV > 0) {
   $input->fdopen(fileno(STDIN),"r") or die "stdin: $!";
 }
 
-&gpx_header;
-
 my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
 my @column_names = @{$csv->getline($input)};
 foreach (@column_names) {
@@ -96,19 +121,12 @@ foreach (@column_names) {
   $_ = lc;
 }
 
-my $track_num = 1;
-gpx_start_track($track_num);
-&gpx_start_trackseg;
 my $prev_time;
 my $max_interval = DateTime::Duration->new(minutes => 5);
 my $trackseg_count = 0;
 while (my $row = $csv->getline($input)) {
   if ((scalar @{$row} == 1) && ($row->[0] eq '')) {
-    if ($trackseg_count > 0) {
-      &gpx_end_trackseg;
-      &gpx_start_trackseg;
-      $trackseg_count = 0;
-    }
+    &gpx_end_trackseg;
     next;
   }
 
@@ -124,13 +142,10 @@ while (my $row = $csv->getline($input)) {
   delete $pt{date};
   if ((defined $prev_time) && ($pt{time} > $prev_time + $max_interval)) {
     &gpx_end_track;
-    $track_num++;
-    &gpx_start_track($track_num);
   }
   $prev_time = $pt{time};
 
   gpx_track_point(\%pt);
-  $trackseg_count++;
 }
-&gpx_end_track;
+
 &gpx_footer;
