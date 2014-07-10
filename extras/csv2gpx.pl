@@ -105,12 +105,54 @@ EOX
   }
 }
 
-my $input;
+sub read_csv_filehandle {
+  my ($input) = @_;
+
+  my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
+  my @column_names = @{$csv->getline($input)};
+  foreach (@column_names) {
+    s{^\s+} {};
+    s{\s+$} {};
+    $_ = lc;
+  }
+
+  my $prev_time;
+  my $max_interval = DateTime::Duration->new(minutes => 5);
+  my $trackseg_count = 0;
+  while (my $row = $csv->getline($input)) {
+    if ((scalar @{$row} == 1) && ($row->[0] eq '')) {
+      &gpx_end_trackseg;
+      next;
+    }
+
+    foreach (@{$row}) {
+      s{^\s+} {};
+      s{\s+$} {};
+    }
+
+    my %pt;
+    @pt{@column_names} = @{$row};
+    $pt{fix} = $fixtypes[delete $pt{type}];
+    $pt{time} = DateTime::Format::ISO8601->parse_datetime($pt{date} . 'T' . $pt{time} . 'Z');
+    delete $pt{date};
+    if ((defined $prev_time) && ($pt{time} > $prev_time + $max_interval)) {
+      &gpx_end_track;
+    }
+    $prev_time = $pt{time};
+
+    gpx_track_point(\%pt);
+  }
+}
+
 if (scalar @ARGV > 0) {
-  open $input, "<", $ARGV[0] or die "$ARGV[0]: $!";
+  foreach my $filename (@ARGV) {
+    open my $input, "<", $filename or die "$filename: $!";
+    read_csv_filehandle($input);
+  }
 } else {
-  $input = IO::Handle->new();
+  my $input = IO::Handle->new();
   $input->fdopen(fileno(STDIN),"r") or die "stdin: $!";
+  read_csv_filehandle($input);
 }
 
 my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
