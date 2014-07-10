@@ -1,0 +1,100 @@
+#!/usr/bin/perl -w
+
+# Under Debian/Ubuntu make sure these Perl libraries are installed:
+#
+# sudo apt-get install libtext-csv-perl libdatetime-format-iso8601-perl
+#
+
+use strict;
+use IO::Handle;
+use DateTime;
+use DateTime::Format::ISO8601;
+use Text::CSV;
+
+sub gpx_header {
+  print << "EOX";
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
+     version="1.1" creator="NavSpark logger, csv2gpx">
+EOX
+}
+
+sub gpx_start_track {
+  my ($trk) = @_;
+  print << "EOX";
+  <trk>
+    <trkseg>
+EOX
+}
+
+my @fixtypes = qw{none none 2d 3d dgps};
+
+sub gpx_track_point {
+  my ($pt) = @_;
+  my $time = $pt->{time}->strftime('%FT%T.%03NZ');
+
+  print << "EOX";
+      <trkpt lat="$pt->{latitude}" lon="$pt->{longitude}">
+        <ele>$pt->{altitude}</ele>
+        <time>$time</time>
+        <fix>$pt->{fix}</fix>
+        <sat>$pt->{numsats}</sat>
+        <hdop>$pt->{hdop}</hdop>
+        <vdop>$pt->{vdop}</vdop>
+        <pdop>$pt->{pdop}</pdop>
+      </trkpt>
+EOX
+}
+
+sub gpx_end_track {
+  print << "EOX";
+    </trkseg>
+  </trk>
+EOX
+}
+
+sub gpx_footer {
+  print << "EOX";
+</gpx>
+EOX
+}
+
+my $input;
+if (scalar @ARGV > 0) {
+  open $input, "<", $ARGV[0] or die "$ARGV[0]: $!";
+} else {
+  $input = IO::Handle->new();
+  $input->fdopen(fileno(STDIN),"r") or die "stdin: $!";
+}
+
+&gpx_header;
+
+my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
+{
+  my $header = $csv->getline($input);
+  foreach (@{$header}) {
+    s{^\s+} {};
+    s{\s+$} {};
+    $_ = lc;
+  }
+  $csv->column_names($header);
+}
+&gpx_start_track;
+while (my $row = $csv->getline_hr($input)) {
+  foreach (values %{$row}) {
+    s{^\s+} {};
+    s{\s+$} {};
+  }
+
+  $row->{fix} = $fixtypes[delete $row->{type}];
+  $row->{time} = DateTime::Format::ISO8601->parse_datetime($row->{date} . 'T' . $row->{time} . 'Z');
+  delete $row->{date};
+
+  gpx_track_point($row);
+}
+&gpx_end_track;
+&gpx_footer;
