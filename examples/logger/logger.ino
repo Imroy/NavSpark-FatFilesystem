@@ -1,3 +1,9 @@
+/*
+ * This example sketch logs the GNSS data to a CSV file on a microSD card
+ * plugged into the NavSpark adaptor board. This file can then be converted to
+ * a GPX file using the csv2gpx.pl program in the extras/ directory.
+ */
+
 #include "FatFileSystem.h"
 
 bool withGNSSLib = FALSE;

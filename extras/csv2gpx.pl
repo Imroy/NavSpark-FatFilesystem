@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# This program converts a CSV file produced by the 'logger' sketch into a GPX file.
+
 # Under Debian/Ubuntu make sure these Perl libraries are installed:
 #
 # sudo apt-get install libdatetime-perl libdatetime-format-iso8601-perl libtext-csv-perl
