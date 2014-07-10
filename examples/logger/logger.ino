@@ -128,6 +128,7 @@ void task_called_after_GNSS_update(void) {
       if (FAT::File::exists(file_path)) {
 	csv_file.open(file_path, FA_WRITE | FA_OPEN_EXISTING);
 	csv_file.lseek(csv_file.size());
+	csv_file.write("\n");
       } else {
 	csv_file.open(file_path, FA_WRITE | FA_CREATE_NEW);
 	csv_file.write("Type, NumSats, Date, Time, Latitude, Longitude, Altitude, Speed, Course, PDOP, HDOP, VDOP\n");

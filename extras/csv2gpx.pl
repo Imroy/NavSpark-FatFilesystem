@@ -30,6 +30,11 @@ sub gpx_start_track {
   print << "EOX";
   <trk>
     <number>$num</number>
+EOX
+}
+
+sub gpx_start_trackseg {
+  print << "EOX";
     <trkseg>
 EOX
 }
@@ -53,9 +58,14 @@ sub gpx_track_point {
 EOX
 }
 
-sub gpx_end_track {
+sub gpx_end_trackseg {
   print << "EOX";
     </trkseg>
+EOX
+}
+
+sub gpx_end_track {
+  print << "EOX";
   </trk>
 EOX
 }
@@ -77,36 +87,48 @@ if (scalar @ARGV > 0) {
 &gpx_header;
 
 my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
-{
-  my $header = $csv->getline($input);
-  foreach (@{$header}) {
-    s{^\s+} {};
-    s{\s+$} {};
-    $_ = lc;
-  }
-  $csv->column_names($header);
+my @column_names = @{$csv->getline($input)};
+foreach (@column_names) {
+  s{^\s+} {};
+  s{\s+$} {};
+  $_ = lc;
 }
+
 my $track_num = 1;
-&gpx_start_track($track_num);
+gpx_start_track($track_num);
+&gpx_start_trackseg;
 my $prev_time;
 my $max_interval = DateTime::Duration->new(minutes => 5);
-while (my $row = $csv->getline_hr($input)) {
-  foreach (values %{$row}) {
+my $trackseg_count = 0;
+while (my $row = $csv->getline($input)) {
+  if ((scalar @{$row} == 1) && ($row->[0] eq '')) {
+    if ($trackseg_count > 0) {
+      &gpx_end_trackseg;
+      &gpx_start_trackseg;
+      $trackseg_count = 0;
+    }
+    next;
+  }
+
+  foreach (@{$row}) {
     s{^\s+} {};
     s{\s+$} {};
   }
 
-  $row->{fix} = $fixtypes[delete $row->{type}];
-  $row->{time} = DateTime::Format::ISO8601->parse_datetime($row->{date} . 'T' . $row->{time} . 'Z');
-  delete $row->{date};
-  if ((defined $prev_time) && ($row->{time} > $prev_time + $max_interval)) {
+  my %pt;
+  @pt{@column_names} = @{$row};
+  $pt{fix} = $fixtypes[delete $pt{type}];
+  $pt{time} = DateTime::Format::ISO8601->parse_datetime($pt{date} . 'T' . $pt{time} . 'Z');
+  delete $pt{date};
+  if ((defined $prev_time) && ($pt{time} > $prev_time + $max_interval)) {
     &gpx_end_track;
     $track_num++;
     &gpx_start_track($track_num);
   }
-  $prev_time = $row->{time};
+  $prev_time = $pt{time};
 
-  gpx_track_point($row);
+  gpx_track_point(\%pt);
+  $trackseg_count++;
 }
 &gpx_end_track;
 &gpx_footer;
